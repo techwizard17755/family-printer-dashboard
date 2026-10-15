@@ -4,21 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>Home Print Dashboard | Family Printer</title>
+  <title>Print a File</title>
   <style>
     :root {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #403a2e;
       background: #fff9e9;
-      font-synthesis: none;
     }
 
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; padding: 1.25rem; }
+    body { display: grid; min-height: 100vh; margin: 0; padding: 1rem; place-items: center; }
     main {
-      width: min(860px, 100%);
-      margin: 1.5rem auto;
-      padding: clamp(1.25rem, 5vw, 2.5rem);
+      width: min(560px, 100%);
+      padding: clamp(1.25rem, 5vw, 2.25rem);
       border: 1px solid #eadfbf;
       border-radius: 24px;
       background: #fffdf6;
@@ -27,7 +25,7 @@
 
     .label {
       display: inline-block;
-      padding: .35rem .8rem;
+      padding: .3rem .75rem;
       border-radius: 999px;
       background: #fff0b8;
       color: #604d14;
@@ -35,163 +33,120 @@
       font-weight: 700;
     }
 
-    h1 { margin: .9rem 0 .25rem; font-size: clamp(2rem, 7vw, 3rem); line-height: 1.1; }
-    h2 { margin: 0; font-size: 1.2rem; }
-    p { line-height: 1.6; }
-    .intro { margin-top: .4rem; color: #665f50; }
-    .panel {
-      margin-top: 1.25rem;
-      padding: 1.25rem;
-      border: 1px solid #eee3c5;
-      border-radius: 16px;
-      background: white;
-    }
-
-    .upload {
-      display: grid;
-      place-items: center;
-      min-height: 150px;
-      margin-top: 1rem;
+    h1 { margin: .8rem 0 .3rem; font-size: clamp(2rem, 7vw, 2.8rem); line-height: 1.1; }
+    p { line-height: 1.55; }
+    .intro { margin: 0; color: #665f50; }
+    .picker {
+      display: block;
+      width: 100%;
+      margin-top: 1.4rem;
       padding: 1rem;
       border: 2px dashed #d7c586;
       border-radius: 14px;
       background: #fffaf0;
-      text-align: center;
+      font: inherit;
     }
 
-    input[type="file"] { max-width: 100%; margin-top: .75rem; font: inherit; }
-    .help { color: #706858; font-size: .92rem; }
-    .file-name { margin: .65rem 0 0; font-weight: 700; overflow-wrap: anywhere; }
-    .preview {
-      display: block;
+    .file-name {
+      min-height: 1.6em;
+      margin: .75rem 0 0;
+      color: #665f50;
+      overflow-wrap: anywhere;
+    }
+
+    button {
       width: 100%;
-      height: min(70vh, 680px);
-      min-height: 360px;
       margin-top: 1rem;
-      border: 1px solid #e8e0ce;
-      border-radius: 10px;
-      background: #f6f4ef;
-    }
-
-    .actions { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1rem; }
-    button, .button {
-      display: inline-block;
-      padding: .75rem 1.1rem;
+      padding: .9rem 1rem;
       border: 0;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #f2cf62;
       color: #403a2e;
       font: inherit;
-      font-weight: 750;
-      text-decoration: none;
+      font-size: 1.05rem;
+      font-weight: 800;
       cursor: pointer;
     }
 
     button:disabled { opacity: .5; cursor: not-allowed; }
-    button.secondary { background: #f2eee2; }
-    button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #7a621b; outline-offset: 3px; }
-    .message { min-height: 1.5em; margin: .8rem 0 0; color: #665f50; }
-    .note {
-      margin-top: 1.25rem;
-      padding: 1rem;
-      border-left: 4px solid #e2b52f;
-      border-radius: 8px;
-      background: #fff7dc;
-    }
-
-    @media (max-width: 520px) {
-      body { padding: .65rem; }
-      main { margin: .5rem auto; }
-      .preview { min-height: 300px; }
-    }
+    button:focus-visible, input:focus-visible { outline: 3px solid #7a621b; outline-offset: 3px; }
+    .status { min-height: 1.5em; margin: .8rem 0 0; color: #665f50; font-size: .94rem; }
+    .hint { margin: 1.2rem 0 0; color: #706858; font-size: .88rem; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <main>
-    <span class="label">HP DeskJet 2900 series</span>
-    <h1>Home Print Dashboard</h1>
-    <p class="intro">Choose a document, check the preview, then send it to print. First connect this phone or computer to the printer using Wi‑Fi Direct.</p>
-
-    <section class="panel" aria-labelledby="upload-heading">
-      <h2 id="upload-heading">Choose a file</h2>
-      <div class="upload">
-        <div>
-          <strong>Select one printable file from your device</strong><br>
-          <input id="file-picker" type="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,application/pdf,image/png,image/jpeg,image/gif,image/webp,text/plain">
-          <p class="help">Supported here: PDF, PNG, JPG, GIF, WebP, and plain text. Files stay on this device; this page does not upload them to a server.</p>
-          <p class="file-name" id="file-name">No file selected</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel" aria-labelledby="preview-heading">
-      <h2 id="preview-heading">Preview</h2>
-      <p class="help">Check that this is the right file before printing.</p>
-      <iframe id="preview" class="preview" title="Selected document preview" hidden></iframe>
-      <p id="empty-preview" class="help">Your file preview will appear here after you choose a supported file.</p>
-      <p id="message" class="message" role="status" aria-live="polite"></p>
-      <div class="actions">
-        <button id="print-button" type="button" disabled>Print selected file</button>
-        <button id="clear-button" class="secondary" type="button" disabled>Clear file</button>
-      </div>
-    </section>
-
-    <aside class="note">
-      <strong>What happens when you print?</strong>
-      <p>The browser opens your device’s print dialog. Choose <strong>HP DeskJet 2900 series [C2BC32]</strong> there if it is not already selected, adjust options, and confirm. The page cannot bypass that confirmation or send jobs directly to the printer.</p>
-      <p class="help">If the printer is missing from the print dialog, make sure Wi‑Fi Direct is connected and that your device supports printing to the printer. Some devices may need the HP Smart app, AirPrint, Mopria, or a printer driver.</p>
-    </aside>
+    <span class="label">Family printer</span>
+    <h1>Print a file</h1>
+    <p class="intro">Choose a file, then press Print.</p>
+    <input class="picker" id="file" type="file" accept="application/pdf,image/*,text/plain">
+    <p class="file-name" id="file-name">No file selected</p>
+    <button id="print" type="button" disabled>Choose a file first</button>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <p class="hint">PDFs open in your device’s PDF viewer. Images and text open the print dialog. Confirm printing in the dialog if asked.</p>
+    <iframe id="print-frame" class="hidden" title="Print document"></iframe>
   </main>
 
   <script>
-    const picker = document.getElementById("file-picker");
-    const preview = document.getElementById("preview");
-    const emptyPreview = document.getElementById("empty-preview");
+    const picker = document.getElementById("file");
     const fileName = document.getElementById("file-name");
-    const message = document.getElementById("message");
-    const printButton = document.getElementById("print-button");
-    const clearButton = document.getElementById("clear-button");
-    let previewUrl = null;
+    const printButton = document.getElementById("print");
+    const status = document.getElementById("status");
+    const frame = document.getElementById("print-frame");
     let selectedFile = null;
+    let objectUrl = null;
 
-    function clearPreview() {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        previewUrl = null;
-      }
-      preview.removeAttribute("src");
-      preview.hidden = true;
-      emptyPreview.hidden = false;
-      selectedFile = null;
-      fileName.textContent = "No file selected";
-      printButton.disabled = true;
-      clearButton.disabled = true;
-    }
+    picker.addEventListener("change", () => {
+      selectedFile = picker.files[0] || null;
+      fileName.textContent = selectedFile ? selectedFile.name : "No file selected";
+      printButton.disabled = !selectedFile;
+      printButton.textContent = selectedFile ? "Print" : "Choose a file first";
+      status.textContent = "";
+    });
 
-    function showFile(file) {
-      clearPreview();
-      if (!file) return;
+    printButton.addEventListener("click", () => {
+      if (!selectedFile) return;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = URL.createObjectURL(selectedFile);
+      status.textContent = "";
 
-      const type = file.type.toLowerCase();
-      const extension = file.name.split(".").pop().toLowerCase();
-      const isPdf = type === "application/pdf" || extension === "pdf";
-      const isImage = type.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp"].includes(extension);
-      const isText = type.startsWith("text/") || extension === "txt";
-
-      if (!isPdf && !isImage && !isText) {
-        message.textContent = "This file type cannot be previewed here. Please choose a PDF, image, or plain text file.";
+      const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
+      if (isPdf) {
+        const pdfWindow = window.open(objectUrl, "_blank");
+        if (!pdfWindow) {
+          status.textContent = "Your browser blocked the PDF tab. Allow pop-ups for this page and press Print again.";
+          return;
+        }
+        status.textContent = "In the PDF tab, use its Print button and confirm the print dialog.";
         return;
       }
 
-      selectedFile = file;
-      fileName.textContent = file.name;
-      preview.hidden = false;
-      emptyPreview.hidden = true;
-      printButton.disabled = false;
-      clearButton.disabled = false;
-      message.textContent = "";
+      const file = selectedFile;
+      const type = file.type.toLowerCase();
+      const isImage = type.startsWith("image/");
+      const isText = type.startsWith("text/") || file.name.toLowerCase().endsWith(".txt");
+      if (!isImage && !isText) {
+        status.textContent = "This file type cannot be printed in the browser. Save it as a PDF, then choose the PDF.";
+        return;
+      }
 
-      if (isText) {
+      const startPrint = () => {
+        try {
+          frame.contentWindow.focus();
+          frame.contentWindow.print();
+        } catch {
+          status.textContent = "Could not open the print dialog. Try opening the file in another app and printing from there.";
+        }
+      };
+
+      if (isImage) {
+        frame.onload = () => {
+          frame.onload = null;
+          setTimeout(startPrint, 150);
+        };
+        frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>@page{margin:10mm}html,body{width:100%;height:100%;margin:0}body{display:grid;place-items:center}img{max-width:100%;max-height:96vh;object-fit:contain}</style></head><body><img src="${objectUrl}" alt=""></body></html>`;
+      } else {
         const reader = new FileReader();
         reader.addEventListener("load", () => {
           if (selectedFile !== file) return;
@@ -199,35 +154,21 @@
             .replaceAll("&", "&amp;")
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;");
-          preview.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>body{font:16px/1.5 system-ui,sans-serif;padding:1.5rem;white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>${escaped}</body></html>`;
+          frame.onload = () => {
+            frame.onload = null;
+            setTimeout(startPrint, 150);
+          };
+          frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>@page{margin:15mm}body{font:12pt/1.5 system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}</style></head><body>${escaped}</body></html>`;
         });
         reader.addEventListener("error", () => {
-          if (selectedFile === file) message.textContent = "Could not read this text file. Please select it again.";
+          status.textContent = "Could not read this file. Please select it again.";
         });
         reader.readAsText(file);
-      } else {
-        previewUrl = URL.createObjectURL(file);
-        preview.src = previewUrl;
       }
-    }
+    });
 
-    picker.addEventListener("change", () => showFile(picker.files[0]));
-    clearButton.addEventListener("click", () => {
-      picker.value = "";
-      message.textContent = "";
-      clearPreview();
-    });
-    printButton.addEventListener("click", () => {
-      if (!selectedFile) return;
-      try {
-        preview.contentWindow.focus();
-        preview.contentWindow.print();
-      } catch (error) {
-        message.textContent = "Could not open the print dialog. Try opening the selected file in a supported app and printing from there.";
-      }
-    });
     window.addEventListener("pagehide", () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     });
   </script>
 </body>
