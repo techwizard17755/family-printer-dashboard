@@ -72,7 +72,17 @@
     button:focus-visible, input:focus-visible { outline: 3px solid #7a621b; outline-offset: 3px; }
     .status { min-height: 1.5em; margin: .8rem 0 0; color: #665f50; font-size: .94rem; }
     .hint { margin: 1.2rem 0 0; color: #706858; font-size: .88rem; }
-    .hidden { display: none; }
+    #print-frame {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      border: 0;
+      background: white;
+    }
+
+    #print-frame.hidden { display: none; }
   </style>
 </head>
 <body>
@@ -84,7 +94,7 @@
     <p class="file-name" id="file-name">No file selected</p>
     <button id="print" type="button" disabled>Choose a file first</button>
     <p class="status" id="status" role="status" aria-live="polite"></p>
-    <p class="hint">PDFs open in your device’s PDF viewer. Images and text open the print dialog. Confirm printing in the dialog if asked.</p>
+    <p class="hint">PDF, image, and plain-text files are supported. Confirm printing in the device’s print dialog if asked.</p>
     <iframe id="print-frame" class="hidden" title="Print document"></iframe>
   </main>
 
@@ -98,6 +108,14 @@
     let objectUrl = null;
 
     picker.addEventListener("change", () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+      }
+      frame.onload = null;
+      frame.removeAttribute("src");
+      frame.srcdoc = "";
+      frame.classList.add("hidden");
       selectedFile = picker.files[0] || null;
       fileName.textContent = selectedFile ? selectedFile.name : "No file selected";
       printButton.disabled = !selectedFile;
@@ -111,41 +129,56 @@
       objectUrl = URL.createObjectURL(selectedFile);
       status.textContent = "";
 
-      const isPdf = selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf");
-      if (isPdf) {
-        const pdfWindow = window.open(objectUrl, "_blank");
-        if (!pdfWindow) {
-          status.textContent = "Your browser blocked the PDF tab. Allow pop-ups for this page and press Print again.";
-          return;
-        }
-        status.textContent = "In the PDF tab, use its Print button and confirm the print dialog.";
-        return;
-      }
-
       const file = selectedFile;
       const type = file.type.toLowerCase();
+      const isPdf = type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
       const isImage = type.startsWith("image/");
       const isText = type.startsWith("text/") || file.name.toLowerCase().endsWith(".txt");
-      if (!isImage && !isText) {
+      if (!isPdf && !isImage && !isText) {
         status.textContent = "This file type cannot be printed in the browser. Save it as a PDF, then choose the PDF.";
         return;
       }
 
       const startPrint = () => {
+        if (selectedFile !== file) return;
         try {
+          frame.classList.remove("hidden");
+          status.textContent = "Opening print dialog…";
+          frame.contentWindow.addEventListener("afterprint", () => {
+            frame.classList.add("hidden");
+            status.textContent = "Print dialog closed.";
+          }, { once: true });
           frame.contentWindow.focus();
           frame.contentWindow.print();
         } catch {
+          frame.classList.add("hidden");
           status.textContent = "Could not open the print dialog. Try opening the file in another app and printing from there.";
         }
       };
 
-      if (isImage) {
+      if (isPdf) {
         frame.onload = () => {
           frame.onload = null;
-          setTimeout(startPrint, 150);
+          setTimeout(startPrint, 500);
         };
-        frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>@page{margin:10mm}html,body{width:100%;height:100%;margin:0}body{display:grid;place-items:center}img{max-width:100%;max-height:96vh;object-fit:contain}</style></head><body><img src="${objectUrl}" alt=""></body></html>`;
+        frame.src = objectUrl;
+      } else if (isImage) {
+        const imageUrl = objectUrl;
+        frame.onload = () => {
+          frame.onload = null;
+          const image = frame.contentDocument.querySelector("img");
+          if (!image) {
+            status.textContent = "Could not prepare this image for printing.";
+            return;
+          }
+          const printWhenReady = () => setTimeout(startPrint, 100);
+          if (image.complete) printWhenReady();
+          else image.addEventListener("load", printWhenReady, { once: true });
+          image.addEventListener("error", () => {
+            status.textContent = "Could not load this image for printing. Please select it again.";
+          }, { once: true });
+        };
+        frame.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><style>@page{margin:10mm}html,body{width:100%;height:100%;margin:0}body{display:grid;place-items:center}img{max-width:100%;max-height:96vh;object-fit:contain}</style></head><body><img src="${imageUrl}" alt=""></body></html>`;
       } else {
         const reader = new FileReader();
         reader.addEventListener("load", () => {
