@@ -83,11 +83,81 @@
     }
 
     #print-frame.hidden { display: none; }
+
+    .login-card { width: min(440px, 100%); margin-inline: auto; }
+    .login-card h1 { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+    .login-form { display: grid; gap: .9rem; margin-top: 1.2rem; }
+    .login-form label { display: grid; gap: .35rem; font-size: .92rem; font-weight: 700; }
+    .login-form input {
+      width: 100%;
+      padding: .8rem .85rem;
+      border: 1px solid #d8cda9;
+      border-radius: 10px;
+      background: #fffefb;
+      color: inherit;
+      font: inherit;
+    }
+
+    .login-form button { margin-top: .25rem; }
+    .mode-switch {
+      display: flex;
+      gap: .5rem;
+      margin-top: 1rem;
+    }
+
+    .mode-switch button {
+      width: 50%;
+      margin: 0;
+      padding: .6rem;
+      background: #f2eee2;
+      font-size: .92rem;
+    }
+
+    .mode-switch button[aria-pressed="true"] { background: #f2cf62; }
+    .demo-warning {
+      margin-top: 1.1rem;
+      padding: .85rem;
+      border-left: 4px solid #e2b52f;
+      border-radius: 8px;
+      background: #fff7dc;
+      color: #5d5133;
+      font-size: .86rem;
+      line-height: 1.5;
+    }
+
+    #print-dashboard[hidden], #login-screen[hidden] { display: none; }
+    .dashboard-top { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+    .dashboard-top button { width: auto; margin: 0; padding: .55rem .8rem; font-size: .9rem; }
   </style>
 </head>
 <body>
-  <main>
-    <span class="label">Family printer</span>
+  <main id="login-screen">
+    <section class="login-card" aria-labelledby="login-title">
+      <span class="label">Family printer</span>
+      <h1 id="login-title">Welcome</h1>
+      <p class="intro">Sign in to continue to the print dashboard.</p>
+      <div class="mode-switch" role="group" aria-label="Choose account action">
+        <button id="sign-in-mode" type="button" aria-pressed="true">Sign in</button>
+        <button id="create-mode" type="button" aria-pressed="false">Create account</button>
+      </div>
+      <form class="login-form" id="demo-login-form">
+        <label for="email">Email
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        </label>
+        <label for="password">Password
+          <input id="password" name="password" type="password" autocomplete="current-password" minlength="4" placeholder="Enter a password" required>
+        </label>
+        <button id="continue-button" type="submit">Sign in</button>
+      </form>
+      <div class="demo-warning"><strong>Demo login only:</strong> this page does not verify accounts or protect access. Any valid email and password will continue; no password is saved. The public webpage remains accessible to anyone.</div>
+    </section>
+  </main>
+
+  <main id="print-dashboard" hidden>
+    <div class="dashboard-top">
+      <span class="label">Family printer</span>
+      <button id="sign-out" type="button">Back to sign in</button>
+    </div>
     <h1>Print a file</h1>
     <p class="intro">Choose a file, then press Print.</p>
     <input class="picker" id="file" type="file" accept="application/pdf,image/*,text/plain">
@@ -99,6 +169,38 @@
   </main>
 
   <script>
+    const loginScreen = document.getElementById("login-screen");
+    const dashboard = document.getElementById("print-dashboard");
+    const loginForm = document.getElementById("demo-login-form");
+    const signInMode = document.getElementById("sign-in-mode");
+    const createMode = document.getElementById("create-mode");
+    const passwordInput = document.getElementById("password");
+    const continueButton = document.getElementById("continue-button");
+    let createAccountMode = false;
+
+    function setLoginMode(createAccount) {
+      createAccountMode = createAccount;
+      signInMode.setAttribute("aria-pressed", String(!createAccount));
+      createMode.setAttribute("aria-pressed", String(createAccount));
+      passwordInput.autocomplete = createAccount ? "new-password" : "current-password";
+      continueButton.textContent = createAccount ? "Create account" : "Sign in";
+    }
+
+    signInMode.addEventListener("click", () => setLoginMode(false));
+    createMode.addEventListener("click", () => setLoginMode(true));
+    loginForm.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!loginForm.reportValidity()) return;
+      loginScreen.hidden = true;
+      dashboard.hidden = false;
+    });
+    document.getElementById("sign-out").addEventListener("click", () => {
+      dashboard.hidden = true;
+      loginScreen.hidden = false;
+      loginForm.reset();
+      setLoginMode(false);
+    });
+
     const picker = document.getElementById("file");
     const fileName = document.getElementById("file-name");
     const printButton = document.getElementById("print");
